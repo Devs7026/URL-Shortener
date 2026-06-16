@@ -1,7 +1,10 @@
 package com.dev.urlshortener.dto;
 
+import jakarta.validation.constraints.NotBlank;
+
 public class UrlRequest {
 
+    @NotBlank(message = "Long URL cannot be empty")
     private String longUrl;
 
     public UrlRequest() {
