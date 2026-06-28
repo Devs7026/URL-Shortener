@@ -2,6 +2,7 @@ package com.dev.urlshortener.service;
 
 import org.springframework.stereotype.Service;
 
+import com.dev.urlshortener.exception.UrlNotFoundException;
 import com.dev.urlshortener.model.UrlMapping;
 import com.dev.urlshortener.repository.UrlRepository;
 import com.dev.urlshortener.util.Base62Converter;
@@ -45,7 +46,7 @@ public class UrlService {
 
         UrlMapping urlMapping = urlRepository.findById(id)
                 .orElseThrow(()
-                        -> new RuntimeException("URL not found for code: " + shortCode));
+                        -> new UrlNotFoundException("URL not found for code: " + shortCode));
 
         return urlMapping.getLongUrl();
     }
