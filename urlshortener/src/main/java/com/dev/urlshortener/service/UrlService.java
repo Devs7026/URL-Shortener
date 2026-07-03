@@ -1,5 +1,7 @@
 package com.dev.urlshortener.service;
 
+import java.util.Optional;
+
 import org.springframework.stereotype.Service;
 
 import com.dev.urlshortener.exception.UrlNotFoundException;
@@ -26,6 +28,12 @@ public class UrlService {
      * using Base62. 4. Return encoded string.
      */
     public String shortenUrl(String longUrl) {
+
+        Optional<UrlMapping> existingUrl = urlRepository.findByLongUrl(longUrl);
+
+        if (existingUrl.isPresent()) {
+            return base62Converter.encode(existingUrl.get().getId());
+        }
 
         UrlMapping urlMapping = new UrlMapping(longUrl);
 
