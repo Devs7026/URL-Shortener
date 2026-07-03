@@ -13,12 +13,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.dev.urlshortener.dto.UrlRequest;
 import com.dev.urlshortener.dto.UrlResponse;
+import com.dev.urlshortener.dto.UrlStatsResponse;
 import com.dev.urlshortener.service.UrlService;
 
 import jakarta.validation.Valid;
 
 @RestController
-@RequestMapping("/api")
 public class UrlController {
 
     private final UrlService urlService;
@@ -27,12 +27,12 @@ public class UrlController {
         this.urlService = urlService;
     }
 
-    @PostMapping("/shorten")
+    @PostMapping("/api/shorten")
     public ResponseEntity<UrlResponse> shortenUrl(@Valid @RequestBody UrlRequest request) {
 
         String shortCode = urlService.shortenUrl(request.getLongUrl());
 
-        String shortUrl = "http://localhost:8080/" + shortCode;
+        String shortUrl = "http://localhost:8081/" + shortCode;
 
         return ResponseEntity.ok(new UrlResponse(shortUrl));
     }
@@ -47,5 +47,14 @@ public class UrlController {
         headers.setLocation(URI.create(longUrl));
 
         return ResponseEntity.status(302).headers(headers).build();
+    }
+
+    @GetMapping("/api/stats/{shortCode}")
+    public ResponseEntity<UrlStatsResponse> getStatistics(
+            @PathVariable String shortCode) {
+
+        return ResponseEntity.ok(
+                urlService.getStatistics(shortCode)
+        );
     }
 }

@@ -4,10 +4,12 @@ import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 
+import com.dev.urlshortener.dto.UrlStatsResponse;
 import com.dev.urlshortener.exception.UrlNotFoundException;
 import com.dev.urlshortener.model.UrlMapping;
 import com.dev.urlshortener.repository.UrlRepository;
 import com.dev.urlshortener.util.Base62Converter;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class UrlService {
@@ -48,7 +50,25 @@ public class UrlService {
      * Flow: 1. Decode Base62 string to ID. 2. Fetch record from database. 3.
      * Return original URL.
      */
+    @Transactional
     public String getLongUrl(String shortCode) {
+
+        long id = base62Converter.decode(shortCode);
+
+        String longUrl = urlRepository.findLongUrlById(id)
+                .orElseThrow(()
+                        -> new UrlNotFoundException("URL not found"));
+
+        int updatedRows = urlRepository.incrementClickCount(id);
+
+        if (updatedRows == 0) {
+            throw new UrlNotFoundException("URL not found");
+        }
+
+        return longUrl;
+    }
+
+    public UrlStatsResponse getStatistics(String shortCode) {
 
         long id = base62Converter.decode(shortCode);
 
@@ -56,6 +76,9 @@ public class UrlService {
                 .orElseThrow(()
                         -> new UrlNotFoundException("URL not found for code: " + shortCode));
 
-        return urlMapping.getLongUrl();
+        return new UrlStatsResponse(
+                urlMapping.getLongUrl(),
+                urlMapping.getClickCount()
+        );
     }
 }
