@@ -24,6 +24,9 @@ public class UrlMapping {
     @Column(nullable = false, columnDefinition = "bigint default 0")
     private Long clickCount = 0L;
 
+    @Column(unique = true, length = 100)
+    private String customAlias;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -57,5 +60,13 @@ public class UrlMapping {
 
     public LocalDateTime getCreatedAt() {
         return createdAt;
+    }
+
+    public String getCustomAlias() {
+        return customAlias;
+    }
+
+    public void setCustomAlias(String customAlias) {
+        this.customAlias = customAlias;
     }
 }

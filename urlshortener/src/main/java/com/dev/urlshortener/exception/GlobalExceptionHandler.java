@@ -35,4 +35,11 @@ public class GlobalExceptionHandler {
                 .badRequest()
                 .body(error);
     }
+    
+    @ExceptionHandler(AliasAlreadyExistsException.class)
+    public ResponseEntity<String> handleAliasAlreadyExistsException(AliasAlreadyExistsException ex) {
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(ex.getMessage());
+    }
 }

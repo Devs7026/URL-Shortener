@@ -29,4 +29,6 @@ public interface UrlRepository extends JpaRepository<UrlMapping, Long> {
     Optional<String> findLongUrlById(@Param("id") Long id);
 
     Optional<UrlMapping> findByLongUrl(String longUrl);
+
+    Optional<UrlMapping> findByCustomAlias(String customAlias);
 }

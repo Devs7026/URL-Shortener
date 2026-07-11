@@ -8,7 +8,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.dev.urlshortener.dto.UrlRequest;
@@ -30,7 +29,7 @@ public class UrlController {
     @PostMapping("/api/shorten")
     public ResponseEntity<UrlResponse> shortenUrl(@Valid @RequestBody UrlRequest request) {
 
-        String shortCode = urlService.shortenUrl(request.getLongUrl());
+        String shortCode = urlService.shortenUrl(request.getLongUrl(), request.getCustomAlias());
 
         String shortUrl = "http://localhost:8081/" + shortCode;
 
