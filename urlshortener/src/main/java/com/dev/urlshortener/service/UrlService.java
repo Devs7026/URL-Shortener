@@ -1,16 +1,18 @@
 package com.dev.urlshortener.service;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.dev.urlshortener.dto.UrlStatsResponse;
 import com.dev.urlshortener.exception.AliasAlreadyExistsException;
+import com.dev.urlshortener.exception.UrlExpiredException;
 import com.dev.urlshortener.exception.UrlNotFoundException;
 import com.dev.urlshortener.model.UrlMapping;
 import com.dev.urlshortener.repository.UrlRepository;
 import com.dev.urlshortener.util.Base62Converter;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class UrlService {
@@ -27,11 +29,16 @@ public class UrlService {
     /**
      * Creates a short URL code from a long URL.
      *
-     * Flow:
-     *  - If a custom alias is provided: validate uniqueness, save with alias, return alias.
-     *  - If no custom alias: deduplicate by long URL, then auto-generate a Base62 code.
+     * Flow: - If a custom alias is provided: validate uniqueness, save with
+     * alias, return alias. - If no custom alias: deduplicate by long URL, then
+     * auto-generate a Base62 code.
      */
-    public String shortenUrl(String longUrl, String customAlias) {
+    public String shortenUrl(String longUrl, String customAlias, LocalDateTime expiresAt) {
+
+        if (expiresAt != null && expiresAt.isBefore(LocalDateTime.now())) {
+            throw new IllegalArgumentException(
+                    "Expiration date must be in the future");
+        }
 
         boolean hasAlias = customAlias != null && !customAlias.isBlank();
 
@@ -43,6 +50,7 @@ public class UrlService {
 
             // Create a new mapping with the custom alias
             UrlMapping urlMapping = new UrlMapping(longUrl);
+            urlMapping.setExpiresAt(expiresAt);
             urlMapping.setCustomAlias(customAlias);
             urlRepository.save(urlMapping);
 
@@ -61,6 +69,7 @@ public class UrlService {
         }
 
         UrlMapping urlMapping = new UrlMapping(longUrl);
+        urlMapping.setExpiresAt(expiresAt);
         UrlMapping savedMapping = urlRepository.save(urlMapping);
 
         return base62Converter.encode(savedMapping.getId());
@@ -69,9 +78,8 @@ public class UrlService {
     /**
      * Retrieves original URL from a short code or custom alias.
      *
-     * Flow:
-     *  1. Try to resolve as a custom alias first.
-     *  2. Fall back to Base62 decoding.
+     * Flow: 1. Try to resolve as a custom alias first. 2. Fall back to Base62
+     * decoding.
      */
     @Transactional
     public String getLongUrl(String shortCode) {
@@ -80,6 +88,13 @@ public class UrlService {
         Optional<UrlMapping> byAlias = urlRepository.findByCustomAlias(shortCode);
         if (byAlias.isPresent()) {
             UrlMapping mapping = byAlias.get();
+
+            if (mapping.getExpiresAt() != null
+                    && mapping.getExpiresAt().isBefore(LocalDateTime.now())) {
+
+                throw new UrlExpiredException(
+                        "This short URL has expired.");
+            }
             urlRepository.incrementClickCount(mapping.getId());
             return mapping.getLongUrl();
         }
@@ -87,16 +102,17 @@ public class UrlService {
         // 2. Fall back to Base62 decoding
         long id = base62Converter.decode(shortCode);
 
-        String longUrl = urlRepository.findLongUrlById(id)
+        UrlMapping mapping = urlRepository.findById(id)
                 .orElseThrow(() -> new UrlNotFoundException("URL not found"));
 
-        int updatedRows = urlRepository.incrementClickCount(id);
-
-        if (updatedRows == 0) {
-            throw new UrlNotFoundException("URL not found");
+        if (mapping.getExpiresAt() != null
+                && mapping.getExpiresAt().isBefore(LocalDateTime.now())) {
+            throw new UrlExpiredException("This short URL has expired.");
         }
 
-        return longUrl;
+        urlRepository.incrementClickCount(id);
+
+        return mapping.getLongUrl();
     }
 
     public UrlStatsResponse getStatistics(String shortCode) {

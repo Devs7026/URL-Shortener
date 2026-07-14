@@ -1,5 +1,7 @@
 package com.dev.urlshortener.dto;
 
+import java.time.LocalDateTime;
+
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 
@@ -13,6 +15,8 @@ public class UrlRequest {
     private String longUrl;
 
     private String customAlias;
+
+    private LocalDateTime expiresAt;
 
     public UrlRequest() {
     }
@@ -35,5 +39,13 @@ public class UrlRequest {
 
     public void setCustomAlias(String customAlias) {
         this.customAlias = customAlias;
+    }
+
+    public LocalDateTime getExpiresAt() {
+        return expiresAt;
+    }
+
+    public void setExpiresAt(LocalDateTime expiresAt) {
+        this.expiresAt = expiresAt;
     }
 }

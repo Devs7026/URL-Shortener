@@ -29,7 +29,7 @@ public class UrlController {
     @PostMapping("/api/shorten")
     public ResponseEntity<UrlResponse> shortenUrl(@Valid @RequestBody UrlRequest request) {
 
-        String shortCode = urlService.shortenUrl(request.getLongUrl(), request.getCustomAlias());
+        String shortCode = urlService.shortenUrl(request.getLongUrl(), request.getCustomAlias(), request.getExpiresAt());
 
         String shortUrl = "http://localhost:8081/" + shortCode;
 

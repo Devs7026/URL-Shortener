@@ -21,13 +21,6 @@ public interface UrlRepository extends JpaRepository<UrlMapping, Long> {
        """)
     int incrementClickCount(@Param("id") Long id);
 
-    @Query("""
-       SELECT u.longUrl
-       FROM UrlMapping u
-       WHERE u.id = :id
-       """)
-    Optional<String> findLongUrlById(@Param("id") Long id);
-
     Optional<UrlMapping> findByLongUrl(String longUrl);
 
     Optional<UrlMapping> findByCustomAlias(String customAlias);

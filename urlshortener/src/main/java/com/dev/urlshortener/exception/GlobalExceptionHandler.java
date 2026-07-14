@@ -35,11 +35,27 @@ public class GlobalExceptionHandler {
                 .badRequest()
                 .body(error);
     }
-    
+
     @ExceptionHandler(AliasAlreadyExistsException.class)
     public ResponseEntity<String> handleAliasAlreadyExistsException(AliasAlreadyExistsException ex) {
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
+                .body(ex.getMessage());
+    }
+
+    @ExceptionHandler(UrlExpiredValidationException.class)
+    public ResponseEntity<String> handleInvalidExpiration(
+            UrlExpiredValidationException ex) {
+
+        return ResponseEntity.badRequest().body(ex.getMessage());
+    }
+
+    @ExceptionHandler(UrlExpiredException.class)
+    public ResponseEntity<String> handleExpiredUrl(
+            UrlExpiredException ex) {
+
+        return ResponseEntity
+                .status(HttpStatus.GONE)
                 .body(ex.getMessage());
     }
 }
